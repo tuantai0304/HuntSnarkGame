@@ -11,6 +11,6 @@ public class Snark extends GameObject {
 
     @Override
     public String toString() {
-        return "Snark{}";
+        return String.format("Snark{%d, %d}", position.x, position.y);
     }
 }

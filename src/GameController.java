@@ -5,6 +5,7 @@ import object.Hint;
 import object.Snark;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -15,11 +16,22 @@ public class GameController {
     Player mPlayer;
     ItemFactory mItemFactory;
 
+    ArrayList<Snark> arrListSnarks;
+    ArrayList<GameObject> arrBonusItems;
+
     public GameController(Player mPlayer) {
         setmPlayer(mPlayer);
 
         mItemFactory = new ItemFactory();
         mItemFactory.loadBonusItem("src/ItemList");
+
+        init();
+
+    }
+
+    private void init() {
+        arrListSnarks = new ArrayList<>();
+        arrBonusItems = new ArrayList<>();
 
         generateGameGrid();
     }
@@ -70,7 +82,8 @@ public class GameController {
             }
 
             gameGrid[row][col] = new Snark();
-//            gameGrid[row][col].setPosition(new Point(row, col));
+            gameGrid[row][col].setPosition(new Point(row, col));
+            arrListSnarks.add((Snark) gameGrid[row][col]);
         }
 
 //        Generate Items List or just left empty if Preference has containBonus = true
@@ -79,13 +92,36 @@ public class GameController {
                 for (int j = 0; j < size; j++) {
                     if (gameGrid[i][j] == null) {
                         // If rand = 0, get a random object from ItemFactory, else just left empty
-                        if (rand.nextInt(2) == 0)
+                        if (rand.nextInt(2) == 0) {
                             gameGrid[i][j] = mItemFactory.getRandomBonusObject();
+                            gameGrid[i][j].setPosition(new Point(i,j));
+                            arrBonusItems.add(gameGrid[i][j]);
+                        }
 
                     }
                 }
             }
         }
+    }
+
+    public Snark getARandomSnark(){
+        Snark snark = null;
+        Random rand = new Random();
+        int pos = rand.nextInt(arrListSnarks.size());
+        snark = arrListSnarks.get(pos);
+
+        arrListSnarks.remove(pos);
+        return snark;
+    }
+
+    public GameObject getARandomBonusObject() {
+        GameObject gameObject = null;
+        Random rand = new Random();
+        int pos = rand.nextInt(arrBonusItems.size());
+        gameObject = arrBonusItems.get(pos);
+
+        arrBonusItems.remove(pos);
+        return gameObject;
     }
 
     GameObject getItemsFrom(int row, int col) {
@@ -102,14 +138,17 @@ public class GameController {
         return false;
     }
 
-    String getHint(Hint hint) {
+    GameObject getHint(Hint hint) {
+        GameObject gameObject = null;
         switch (hint.getmHintType()) {
-            case ITEM_HINT:
-                break;
             case SNARK_HINT:
+                gameObject = getARandomSnark();
+                break;
+            case ITEM_HINT:
+                gameObject = getARandomBonusObject();
                 break;
         }
-        return "I am a hint";
+        return gameObject;
     }
 
     public Snark getNearestSnark(int row, int col) {
@@ -138,7 +177,6 @@ public class GameController {
                     }
                 }
             }
-
             radius++;
         }
 
@@ -171,7 +209,6 @@ public class GameController {
                     }
                 }
             }
-
             radius++;
         }
 

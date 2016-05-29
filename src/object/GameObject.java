@@ -7,7 +7,7 @@ import java.awt.*;
  */
 public abstract class GameObject implements Cloneable{
     public enum GAMEOBJECT_TYPE {
-        SNARK, BONUSITEM, CANNON, HINT, SNARKNEST, EMPTY
+        SNARK, BONUSITEM, CANNON, HINT, SNARKNEST
     }
 
     GAMEOBJECT_TYPE mGameObjectType;
