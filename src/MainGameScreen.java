@@ -41,7 +41,7 @@ public class MainGameScreen extends JFrame {
     private final String RES_LOSE = "YOU LOSE, MAN";
     private final String RES_WIN = "CONGRATULATION, WINNER";
 
-    private final int DEFAULT_AMMO = 10;
+    private final int DEFAULT_AMMO = 100;
     private final int DEFAULT_CATCHED_SNARK = 0;
 
 
@@ -85,7 +85,7 @@ public class MainGameScreen extends JFrame {
                 } else if (e.getSource() == saveButton) {
                     saveFile();
                 } else if (e.getSource() == newGameButton) {
-                    newGame();
+                    initGame();
                 } else {
                     System.out.println("Not recognized button");
                 }
@@ -102,6 +102,7 @@ public class MainGameScreen extends JFrame {
     public void newGame() {
         resetParam();
         initGameGUI();
+        showGamegridToConsole();
     }
 
     private void resetParam() {
@@ -134,6 +135,8 @@ public class MainGameScreen extends JFrame {
 
     private void initGameGUI() {
         gameGridPane.removeAll();
+        someCueTextArea.setText("");
+        tfResult.setText("");
 
         int size = preference.getGridSize();
         jButtonArr = new JButton[size][size];
@@ -159,7 +162,6 @@ public class MainGameScreen extends JFrame {
         tfResult.setVisible(true);
 
         pack();
-
         updateCatchedSnark();
         updateRemainAmmo();
     }
@@ -204,6 +206,7 @@ public class MainGameScreen extends JFrame {
             tfResult.setText(RES_LOSE);
             setPanelEnabled(gameGridPane, false);
         }
+        pack();
         return isEnd;
     }
 
@@ -244,7 +247,7 @@ public class MainGameScreen extends JFrame {
                     if (gameController.getItemsFrom(i, j) != null) {
                         getEffect(jButtonArr[i][j]);
                     } else {
-                        jButtonArr[i][j].setDisabledIcon(new ImageIcon(TILE_EMPTY));
+                        jButtonArr[i][j].setDisabledIcon(getResizeImage(TILE_EMPTY));
                     }
                 }
             }
@@ -326,17 +329,21 @@ public class MainGameScreen extends JFrame {
         } else if (typeOfHint.getmGameObjectType() == GameObject.GAMEOBJECT_TYPE.SNARKNEST) {
             randObject = gameController.getARandomSnark();
         }
-        int rand_x = randObject.getPosition().x;
-        int rand_y = randObject.getPosition().y;
+        int rand_x;
+        int rand_y;
 
-        while (!jButtonArr[rand_x][rand_y].isEnabled()) {
-            if (typeOfHint.getmGameObjectType() == GameObject.GAMEOBJECT_TYPE.HINT) {
-                randObject = gameController.getHint((Hint) typeOfHint);
-            } else if (typeOfHint.getmGameObjectType() == GameObject.GAMEOBJECT_TYPE.SNARKNEST) {
-                randObject = gameController.getARandomSnark();
-            }
+        if (randObject != null) {
             rand_x = randObject.getPosition().x;
             rand_y = randObject.getPosition().y;
+            while (!jButtonArr[rand_x][rand_y].isEnabled() || randObject==null) {
+                if (typeOfHint.getmGameObjectType() == GameObject.GAMEOBJECT_TYPE.HINT) {
+                    randObject = gameController.getHint((Hint) typeOfHint);
+                } else if (typeOfHint.getmGameObjectType() == GameObject.GAMEOBJECT_TYPE.SNARKNEST) {
+                    randObject = gameController.getARandomSnark();
+                }
+                rand_x = randObject.getPosition().x;
+                rand_y = randObject.getPosition().y;
+            }
         }
         return randObject;
     }
@@ -371,11 +378,11 @@ public class MainGameScreen extends JFrame {
     }
 
 
-    public static void main(String[] args) {
-        MainGameScreen mainGameScreen = new MainGameScreen(null);
-        for (int i = 0; i < mainGameScreen.preference.getGridSize(); i++) {
-            for (int j = 0; j < mainGameScreen.preference.getGridSize(); j++) {
-                GameObject[][] gameGrid = mainGameScreen.gameController.getGameGrid();
+    public void showGamegridToConsole() {
+
+        for (int i = 0; i < preference.getGridSize(); i++) {
+            for (int j = 0; j < preference.getGridSize(); j++) {
+                GameObject[][] gameGrid = gameController.getGameGrid();
                 if (gameGrid[i][j] != null)
                     System.out.print(" " + gameGrid[i][j] + " ");
                 else
@@ -384,7 +391,6 @@ public class MainGameScreen extends JFrame {
             System.out.println("\n");
 //        }
         }
-
     }
 
     public void setPlayer(Player player) {

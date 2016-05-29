@@ -17,6 +17,7 @@ public class GameController {
     ItemFactory mItemFactory;
 
     ArrayList<Snark> arrListSnarks;
+    ArrayList<Snark> arrCatchedSnarks;
     ArrayList<GameObject> arrBonusItems;
 
     public GameController(Player mPlayer) {
@@ -26,10 +27,6 @@ public class GameController {
 
         init();
 
-    }
-
-    public GameController() {
-        mPlayer = new Player("Null", null);
     }
 
     private void init() {
@@ -89,6 +86,8 @@ public class GameController {
             arrListSnarks.add((Snark) gameGrid[row][col]);
         }
 
+        arrCatchedSnarks = new ArrayList<>();
+
 //        Generate Items List or just left empty if Preference has containBonus = true
         if (preference.isContainBonus()) {
             for (int i = 0; i < size; i++) {
@@ -110,10 +109,12 @@ public class GameController {
     public Snark getARandomSnark(){
         Snark snark = null;
         Random rand = new Random();
-        int pos = rand.nextInt(arrListSnarks.size());
-        snark = arrListSnarks.get(pos);
+        if (arrListSnarks.size() > 0) {
+            int pos = rand.nextInt(arrListSnarks.size());
+            snark = arrListSnarks.get(pos);
 
-        arrListSnarks.remove(pos);
+            arrListSnarks.remove(pos);
+        }
         return snark;
     }
 
@@ -128,10 +129,13 @@ public class GameController {
     }
 
     GameObject getItemsFrom(int row, int col) {
+        GameObject gameObject = gameGrid[row][col];
+
         if (checkItemAt(row, col)) {
-            return gameGrid[row][col];
+            if ( gameObject instanceof Snark)
+                arrCatchedSnarks.add((Snark) gameObject);
         }
-        return null;
+        return gameObject;
     }
 
     boolean checkItemAt(int row, int col) {
@@ -174,7 +178,7 @@ public class GameController {
 //            Try to find a snark within a radius, if not found, increas radius
             for (int i = lowerRow; i <= upperRow; i++) {
                 for (int j = lowerCol; j <= upperCol; j++) {
-                    if (gameGrid[i][j] != null && (gameGrid[i][j]) instanceof Snark) {
+                    if (gameGrid[i][j] != null && (gameGrid[i][j]) instanceof Snark && !arrCatchedSnarks.contains(gameGrid[i][j])) {
                         isFound = true;
                         snark = (Snark) gameGrid[i][j];
                     }
@@ -185,28 +189,5 @@ public class GameController {
 
         return snark;
     }
-
-    public void saveToFile(String filePath) {
-//        Todo: save here
-    }
-
-//    public static void main(String[] args) {
-////        Todo: fix hardcode
-//        Preference preference = new Preference(7, 10, false);
-//        Player player = new Player("Tai", preference);
-//
-//        GameController gameController = new GameController(player);
-//
-//        for (int i = 0; i < preference.getGridSize(); i++) {
-//            for (int j = 0; j < preference.getGridSize(); j++) {
-//                GameObject[][] gameGrid = gameController.getGameGrid();
-//                if (gameGrid[i][j] != null)
-//                    System.out.print(" "+gameGrid[i][j]+ " ");
-//                else
-//                    System.out.print(" null ");
-//            }
-//            System.out.println("\n");
-//        }
-//    }
 
 }
