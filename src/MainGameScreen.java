@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 /**
  * Created by TuanTai on 28/05/2016.
@@ -26,7 +27,6 @@ public class MainGameScreen extends JFrame {
     private JLabel tfRemainAmmo;
     private JLabel tfResult;
 
-    int size;
     int numCatchedSnark;
     int numRemainAmmo;
 
@@ -41,15 +41,21 @@ public class MainGameScreen extends JFrame {
     private final String RES_LOSE = "YOU LOSE, MAN";
     private final String RES_WIN = "CONGRATULATION, WINNER";
 
+    private final int DEFAULT_AMMO = 10;
+    private final int DEFAULT_CATCHED_SNARK = 0;
+
+
 
     JButton[][] jButtonArr;
     GameController gameController;
 
-    public MainGameScreen(int size) {
+    public MainGameScreen(Player player) {
         super("Main game Screen");
-
-        this.size = size;
         setContentPane(mainPane);
+
+        this.player = player;
+        this.preference = player.getPreference();
+
         initGame();
         pack();
         setVisible(true);
@@ -62,12 +68,11 @@ public class MainGameScreen extends JFrame {
     private void initGame() {
 
 //        Todo: // FIXME: 28/05/2016
-        preference = new Preference(10, 5, true);
-        player = new Player("Tai", preference);
+//        preference = new Preference(10, 5, true);
+//        player = new Player("Tai", preference);
 
         gameController = new GameController(player);
-        initGameParameters();
-        initGameGUI();
+        newGame();
         initFunctionButtons();
     }
 
@@ -75,6 +80,15 @@ public class MainGameScreen extends JFrame {
         ActionListener funtionListenner = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == optionsButton) {
+                    showOptionScreen();
+                } else if (e.getSource() == saveButton) {
+                    saveFile();
+                } else if (e.getSource() == newGameButton) {
+                    newGame();
+                } else {
+                    System.out.println("Not recognized button");
+                }
 
             }
         };
@@ -85,7 +99,42 @@ public class MainGameScreen extends JFrame {
 
     }
 
+    public void newGame() {
+        resetParam();
+        initGameGUI();
+    }
+
+    private void resetParam() {
+        numRemainAmmo = DEFAULT_AMMO;
+        numCatchedSnark = DEFAULT_CATCHED_SNARK;
+    }
+
+    private void saveFile() {
+        JFileChooser chooser = new JFileChooser("/");
+
+        int retrieval = chooser.showSaveDialog(null);
+        if (retrieval == JFileChooser.APPROVE_OPTION) {
+            try {
+                FileOutputStream fos = new FileOutputStream(chooser.getSelectedFile());
+                ObjectOutputStream out = new ObjectOutputStream(fos);
+                out.writeObject(player);
+                out.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void showOptionScreen() {
+        new OptionScreen().setVisible(true);
+        this.setVisible(false);
+    }
+
     private void initGameGUI() {
+        gameGridPane.removeAll();
+
         int size = preference.getGridSize();
         jButtonArr = new JButton[size][size];
         gameGridPane.setLayout(new GridLayout(size, size));
@@ -93,7 +142,11 @@ public class MainGameScreen extends JFrame {
             for (int j = 0; j < size; j++) {
                 JButton btn = new JButton();
                 btn.addActionListener(gameGridActionListener);
-                btn.setIcon(new ImageIcon(TILE_UNSEARCHED));
+                btn.setIcon(getResizeImage(TILE_UNSEARCHED));
+//                btn.setPreferredSize(new Dimension(10,10));
+//                btn.setMaximumSize(new Dimension(10,10));
+                btn.setSize(10,10);
+                btn.setMargin(new Insets(0,0,0,0));
                 btn.putClientProperty("row", i);
                 btn.putClientProperty("column", j);
 
@@ -105,17 +158,21 @@ public class MainGameScreen extends JFrame {
         tfName.setText(player.getPlayerName());
         tfResult.setVisible(true);
 
+        pack();
+
         updateCatchedSnark();
         updateRemainAmmo();
     }
 
-    private void updateRemainAmmo() {
-        tfRemainAmmo.setText(String.valueOf(numRemainAmmo));
+    private ImageIcon getResizeImage(String filePath) {
+        ImageIcon icon = new ImageIcon(filePath);
+        Image img = icon.getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
+        icon = new ImageIcon( img );
+        return icon;
     }
 
-    private void initGameParameters() {
-        numCatchedSnark = 0;
-        numRemainAmmo = 5;
+    private void updateRemainAmmo() {
+        tfRemainAmmo.setText(String.valueOf(numRemainAmmo));
     }
 
     ActionListener gameGridActionListener = new ActionListener() {
@@ -182,12 +239,11 @@ public class MainGameScreen extends JFrame {
 
         for (int i = lowerRow; i <= upperRow; i++) {
             for (int j = lowerCol; j <= upperCol; j++) {
-                if (jButtonArr[i][j].isEnabled() && (i!= row || j!=col)) {
+                if (jButtonArr[i][j].isEnabled() && (i != row || j != col)) {
                     jButtonArr[i][j].setEnabled(false);
                     if (gameController.getItemsFrom(i, j) != null) {
                         getEffect(jButtonArr[i][j]);
-                    }
-                    else{
+                    } else {
                         jButtonArr[i][j].setDisabledIcon(new ImageIcon(TILE_EMPTY));
                     }
                 }
@@ -208,19 +264,19 @@ public class MainGameScreen extends JFrame {
                 case SNARK:
                     numCatchedSnark++;
                     updateCatchedSnark();
-                    jButtonArr[row][col].setDisabledIcon(new ImageIcon(TILE_SNARK));
+                    jButtonArr[row][col].setDisabledIcon(getResizeImage(TILE_SNARK));
                     isSnark = true;
                     break;
 
                 case CANNON:
-                    jButtonArr[row][col].setDisabledIcon(new ImageIcon(TILE_BONUS_CANNON));
+                    jButtonArr[row][col].setDisabledIcon(getResizeImage(TILE_BONUS_CANNON));
                     blastSurrounding(row, col, ((Cannon) gameObject).getBlastRadius());
 
                     break;
 
                 case BONUSITEM:
                     numRemainAmmo += ((Ammo) gameObject).getNumExtraShot();
-                    jButtonArr[row][col].setDisabledIcon(new ImageIcon(TILE_BONUS_AMMO));
+                    jButtonArr[row][col].setDisabledIcon(getResizeImage(TILE_BONUS_AMMO));
                     updateRemainAmmo();
                     break;
 
@@ -230,7 +286,7 @@ public class MainGameScreen extends JFrame {
 //                    getEffect(jButtonArr[randObject.getPosition().x][randObject.getPosition().y]);
                     if (hint != null) {
                         jButtonArr[hint.getPosition().x][hint.getPosition().y].setBackground(Color.red);
-                        jButtonArr[row][col].setDisabledIcon(new ImageIcon(TILE_BONUS_HINT));
+                        jButtonArr[row][col].setDisabledIcon(getResizeImage(TILE_BONUS_HINT));
                     }
                     break;
 
@@ -250,7 +306,7 @@ public class MainGameScreen extends JFrame {
         } else {
             numRemainAmmo--;
             updateRemainAmmo();
-            jButtonArr[row][col].setDisabledIcon(new ImageIcon(TILE_EMPTY));
+            jButtonArr[row][col].setDisabledIcon(getResizeImage(TILE_EMPTY));
         }
 
         if (!isSnark) {
@@ -316,11 +372,9 @@ public class MainGameScreen extends JFrame {
 
 
     public static void main(String[] args) {
-        MainGameScreen mainGameScreen = new MainGameScreen(7);
-
-        Preference preference = mainGameScreen.preference;
-        for (int i = 0; i < preference.getGridSize(); i++) {
-            for (int j = 0; j < preference.getGridSize(); j++) {
+        MainGameScreen mainGameScreen = new MainGameScreen(null);
+        for (int i = 0; i < mainGameScreen.preference.getGridSize(); i++) {
+            for (int j = 0; j < mainGameScreen.preference.getGridSize(); j++) {
                 GameObject[][] gameGrid = mainGameScreen.gameController.getGameGrid();
                 if (gameGrid[i][j] != null)
                     System.out.print(" " + gameGrid[i][j] + " ");
@@ -328,8 +382,21 @@ public class MainGameScreen extends JFrame {
                     System.out.print(" null ");
             }
             System.out.println("\n");
+//        }
         }
+
     }
 
+    public void setPlayer(Player player) {
+        this.player = player;
+        this.preference = player.getPreference();
+    }
 
+    public GameController getGameController() {
+        return gameController;
+    }
+
+    public void setGameController(GameController gameController) {
+        this.gameController = gameController;
+    }
 }

@@ -27,4 +27,12 @@ public class Player implements Serializable {
     public void setPreference(Preference preference) {
         this.preference = preference;
     }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "playerName='" + playerName + '\'' +
+                ", preference=" + preference +
+                '}';
+    }
 }

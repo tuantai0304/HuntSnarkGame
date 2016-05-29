@@ -21,12 +21,15 @@ public class GameController {
 
     public GameController(Player mPlayer) {
         setmPlayer(mPlayer);
-
         mItemFactory = new ItemFactory();
         mItemFactory.loadBonusItem("src/ItemList");
 
         init();
 
+    }
+
+    public GameController() {
+        mPlayer = new Player("Null", null);
     }
 
     private void init() {
@@ -183,61 +186,27 @@ public class GameController {
         return snark;
     }
 
-    public BonusItem getNearestBonusItem(int row, int col) {
-        boolean isFound = false;
-        BonusItem bonusItem = null;
-        int radius = 1;
-
-        while (!isFound) {
-            int lowerRow = row - radius;
-            int upperRow = row + radius;
-            int lowerCol = col - radius;
-            int upperCol = col + radius;
-
-//            Because gameGrid is a square
-            if (lowerRow < 0) lowerRow = 0;
-            if (upperRow >= gameGrid.length) upperRow = gameGrid.length-1;
-            if (lowerCol < 0) lowerCol = 0;
-            if (upperCol >= gameGrid.length) upperCol = gameGrid.length-1;
-
-//            Try to find a snark within a radius, if not found, increas radius
-            for (int i = lowerRow; i <= upperRow; i++) {
-                for (int j = lowerCol; j <= upperCol; j++) {
-                    if (gameGrid[i][j] != null && (gameGrid[i][j]) instanceof BonusItem) {
-                        isFound = true;
-                        bonusItem = (BonusItem) gameGrid[i][j];
-                    }
-                }
-            }
-            radius++;
-        }
-
-        return bonusItem;
-    }
-
-
-
     public void saveToFile(String filePath) {
 //        Todo: save here
     }
 
-    public static void main(String[] args) {
-//        Todo: fix hardcode
-        Preference preference = new Preference(7, 10, false);
-        Player player = new Player("Tai", preference);
-
-        GameController gameController = new GameController(player);
-
-        for (int i = 0; i < preference.getGridSize(); i++) {
-            for (int j = 0; j < preference.getGridSize(); j++) {
-                GameObject[][] gameGrid = gameController.getGameGrid();
-                if (gameGrid[i][j] != null)
-                    System.out.print(" "+gameGrid[i][j]+ " ");
-                else
-                    System.out.print(" null ");
-            }
-            System.out.println("\n");
-        }
-    }
+//    public static void main(String[] args) {
+////        Todo: fix hardcode
+//        Preference preference = new Preference(7, 10, false);
+//        Player player = new Player("Tai", preference);
+//
+//        GameController gameController = new GameController(player);
+//
+//        for (int i = 0; i < preference.getGridSize(); i++) {
+//            for (int j = 0; j < preference.getGridSize(); j++) {
+//                GameObject[][] gameGrid = gameController.getGameGrid();
+//                if (gameGrid[i][j] != null)
+//                    System.out.print(" "+gameGrid[i][j]+ " ");
+//                else
+//                    System.out.print(" null ");
+//            }
+//            System.out.println("\n");
+//        }
+//    }
 
 }

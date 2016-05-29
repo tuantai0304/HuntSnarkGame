@@ -34,6 +34,15 @@ public class Preference implements Serializable{
         return containBonus;
     }
 
+    @Override
+    public String toString() {
+        return "Preference{" +
+                "gridSize=" + gridSize +
+                ", numSnarkDefault=" + numSnarkDefault +
+                ", containBonus=" + containBonus +
+                '}';
+    }
+
     public void setContainBonus(boolean containBonus) {
         this.containBonus = containBonus;
     }
